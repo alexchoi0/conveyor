@@ -87,7 +87,7 @@ impl<'a> Optimizer<'a> {
 
             let mut prev_node = format!("source:{}", source_name);
 
-            for (idx, step_name) in shared_prefix.iter().enumerate() {
+            for step_name in shared_prefix.iter() {
                 let stage_id = format!("shared:{}:{}", source_name, step_name);
 
                 if let Some(transform_spec) = self.registry.transform_spec(&self.namespace, step_name) {

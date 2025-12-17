@@ -117,4 +117,51 @@ pub enum RouterCommand {
         partition: u32,
         offset: u64,
     },
+
+    RegisterSidecar {
+        sidecar_id: String,
+        pod_name: String,
+        namespace: String,
+        endpoint: String,
+        local_services: Vec<SidecarLocalService>,
+    },
+
+    DeregisterSidecar {
+        sidecar_id: String,
+    },
+
+    UpdateSidecarHeartbeat {
+        sidecar_id: String,
+        timestamp: u64,
+    },
+
+    AssignPipelineToSidecar {
+        pipeline_id: String,
+        sidecar_id: String,
+        stage_assignments: Vec<SidecarStageAssignment>,
+    },
+
+    RevokePipelineFromSidecar {
+        pipeline_id: String,
+        sidecar_id: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SidecarLocalService {
+    pub service_name: String,
+    pub service_type: String,
+    pub local_endpoint: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SidecarStageAssignment {
+    pub stage_id: String,
+    pub target: SidecarStageTarget,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SidecarStageTarget {
+    Local { endpoint: String },
+    Remote { sidecar_id: String, endpoint: String },
 }

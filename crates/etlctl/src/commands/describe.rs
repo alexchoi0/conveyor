@@ -55,7 +55,7 @@ pub async fn run(ctx: &Context, args: DescribeArgs) -> Result<()> {
     Ok(())
 }
 
-fn print_describe(resource_type: &ResourceType, resource: &serde_json::Value) {
+fn print_describe(_resource_type: &ResourceType, resource: &serde_json::Value) {
     let yaml = serde_yaml::to_string(resource).unwrap_or_default();
     println!("{}", yaml);
 }

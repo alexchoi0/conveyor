@@ -1,6 +1,5 @@
 use anyhow::{Context as _, Result};
 use clap::{Args, ValueEnum};
-use etl_dsl::ResourceKind;
 use tabled::{Table, Tabled};
 
 use super::Context;

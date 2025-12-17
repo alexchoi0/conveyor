@@ -1,7 +1,5 @@
-use std::sync::Arc;
 use anyhow::Result;
 use tonic::transport::Channel;
-use tracing::{debug, warn};
 
 use etl_proto::transform::{
     transform_service_client::TransformServiceClient,

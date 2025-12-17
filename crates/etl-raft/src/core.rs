@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{RwLock, mpsc, watch};
+use tokio::sync::{RwLock, watch};
 use serde::{Serialize, Deserialize};
 use anyhow::{Result, anyhow};
-use tracing::{info, warn, debug, error};
+use tracing::{info, debug, error};
 
 use super::storage::LogStorage;
 use super::commands::RouterCommand;
@@ -592,7 +592,7 @@ impl RaftCore {
             leader_state.next_index.insert(from, resp.match_index + 1);
 
             // Check if we can advance commit_index
-            drop(leader_state);
+            let _ = leader_state;
             self.try_advance_commit_index().await;
         } else {
             // Decrement next_index and retry
@@ -646,7 +646,7 @@ impl RaftCore {
             }
         }
 
-        drop(leader_state);
+        let _ = leader_state;
         self.apply_committed_entries().await;
     }
 

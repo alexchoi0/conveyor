@@ -26,10 +26,12 @@ pub trait BackupStorage: Send + Sync {
 
     async fn list(&self, prefix: &str) -> Result<Vec<String>>;
 
+    #[allow(dead_code)]
     async fn delete(&self, path: &str) -> Result<()>;
 
     async fn delete_recursive(&self, prefix: &str) -> Result<()>;
 
+    #[allow(dead_code)]
     async fn exists(&self, path: &str) -> Result<bool>;
 }
 

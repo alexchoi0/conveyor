@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use anyhow::Result;
 
 use super::NodeId;
 
@@ -13,6 +12,7 @@ pub struct PeerNode {
 
 pub struct RaftNetwork {
     peers: Arc<RwLock<HashMap<NodeId, PeerNode>>>,
+    #[allow(dead_code)]
     local_id: NodeId,
 }
 

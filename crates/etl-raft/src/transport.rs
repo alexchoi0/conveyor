@@ -1,9 +1,7 @@
 use std::collections::HashMap;
-use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tonic::{Request, Response, Status, transport::Channel};
-use tracing::{debug, error, info, warn};
 use anyhow::Result;
 
 use etl_proto::raft::{

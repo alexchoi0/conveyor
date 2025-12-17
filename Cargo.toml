@@ -15,6 +15,7 @@ members = [
     "crates/etl-router",
     "crates/etlctl",
     "crates/etl-operator",
+    "crates/etl-sidecar",
 ]
 
 [workspace.package]
@@ -38,6 +39,7 @@ etl-dsl = { path = "crates/etl-dsl" }
 etl-dlq = { path = "crates/etl-dlq" }
 etlctl = { path = "crates/etlctl" }
 etl-operator = { path = "crates/etl-operator" }
+etl-sidecar = { path = "crates/etl-sidecar" }
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }

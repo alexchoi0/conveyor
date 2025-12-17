@@ -6,7 +6,7 @@ use tonic::transport::Channel;
 
 use etl_proto::backup::{
     backup_service_client::BackupServiceClient, CompressionType, CreateSnapshotRequest,
-    DeleteSnapshotRequest, GetStateMetadataRequest, ListSnapshotsRequest, RestoreSnapshotRequest,
+    DeleteSnapshotRequest, RestoreSnapshotRequest,
     StreamSnapshotRequest,
 };
 
@@ -315,7 +315,7 @@ async fn restore(args: RestoreArgs) -> Result<()> {
     let data = storage.download(&checkpoint_path).await?;
 
     println!("Uploading to router...");
-    let upload_id = uuid::Uuid::new_v4().to_string();
+    let _upload_id = uuid::Uuid::new_v4().to_string();
 
     use etl_proto::backup::DataChunk;
     use tokio_stream::iter;

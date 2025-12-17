@@ -108,6 +108,7 @@ fn labels(name: &str) -> BTreeMap<String, String> {
     labels
 }
 
+#[allow(dead_code)]
 fn owner_reference(cluster: &EtlRouterCluster) -> k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
     k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
         api_version: EtlRouterCluster::api_version(&()).to_string(),
@@ -471,7 +472,7 @@ async fn reconcile_statefulset(
 
 async fn poll_cluster_status(
     ctx: &Context,
-    ns: &str,
+    _ns: &str,
     name: &str,
     spec: &crate::crd::EtlRouterClusterSpec,
 ) -> EtlRouterClusterStatus {

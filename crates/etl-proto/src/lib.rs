@@ -55,3 +55,7 @@ pub mod raft {
 pub mod backup {
     tonic::include_proto!("etl.backup");
 }
+
+pub mod sidecar {
+    tonic::include_proto!("etl.sidecar");
+}

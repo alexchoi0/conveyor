@@ -23,6 +23,7 @@ use etl_raft::RaftNode;
 use etl_registry::{ServiceRegistry, ServiceType};
 
 pub struct ServiceRegistryImpl {
+    #[allow(dead_code)]
     raft_node: Arc<RwLock<RaftNode>>,
     registry: Arc<RwLock<ServiceRegistry>>,
 }

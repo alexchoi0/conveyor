@@ -12,7 +12,7 @@ mod tests;
 pub use state_machine::{RouterStateMachine, RouterState};
 pub use storage::LogStorage;
 pub use network::RaftNetwork;
-pub use commands::{RouterCommand, SerializableTimestamp};
+pub use commands::{RouterCommand, SerializableTimestamp, SidecarLocalService, SidecarStageAssignment, SidecarStageTarget};
 pub use core::{NodeId, Term, LogIndex, RaftCore, RaftConfig, RaftRole};
 pub use transport::{RaftTransport, RaftTransportService};
 pub use node::RaftNode;

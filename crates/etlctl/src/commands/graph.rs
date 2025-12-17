@@ -107,7 +107,7 @@ fn load_manifest_into_registry(path: &PathBuf, registry: &mut Registry) -> Resul
     Ok(())
 }
 
-async fn fetch_registry_from_server(ctx: &Context) -> Result<Registry> {
+async fn fetch_registry_from_server(_ctx: &Context) -> Result<Registry> {
     println!("Note: API server not available, using empty registry");
     Ok(Registry::new())
 }
@@ -161,7 +161,7 @@ fn print_dot(dag: &etl_dsl::optimizer::OptimizedDag) {
     println!();
 
     println!("  // Sources");
-    for (id, source) in &dag.sources {
+    for (id, _source) in &dag.sources {
         println!(
             "  \"source:{}\" [shape=cylinder, label=\"{}\"];",
             id, id

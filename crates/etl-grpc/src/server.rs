@@ -15,10 +15,12 @@ use etl_graphql::GraphQLServer;
 use etl_proto::source::source_router_server::SourceRouterServer;
 use etl_proto::registry::service_registry_server::ServiceRegistryServer;
 use etl_proto::checkpoint::checkpoint_service_server::CheckpointServiceServer;
+use etl_proto::sidecar::sidecar_coordinator_server::SidecarCoordinatorServer;
 
 use super::source_handler::SourceRouterImpl;
 use super::registry_handler::ServiceRegistryImpl;
 use super::checkpoint_handler::CheckpointServiceImpl;
+use super::sidecar_handler::SidecarCoordinatorImpl;
 
 pub struct RouterServer {
     node_id: u64,
@@ -114,6 +116,10 @@ impl RouterServer {
             raft_node.clone(),
         );
 
+        let sidecar_coordinator = SidecarCoordinatorImpl::new(
+            raft_node.clone(),
+        );
+
         info!("Starting Raft gRPC server on {}...", self.raft_addr);
         let raft_addr = self.raft_addr;
         let raft_server = tokio::spawn(async move {
@@ -139,6 +145,7 @@ impl RouterServer {
             .add_service(SourceRouterServer::new(source_router))
             .add_service(ServiceRegistryServer::new(registry_service))
             .add_service(CheckpointServiceServer::new(checkpoint_service))
+            .add_service(SidecarCoordinatorServer::new(sidecar_coordinator))
             .serve(self.listen_addr);
 
         tokio::select! {
