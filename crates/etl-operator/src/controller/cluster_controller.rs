@@ -5,13 +5,20 @@ use std::time::Duration;
 use futures::StreamExt;
 use k8s_openapi::api::apps::v1::{StatefulSet, StatefulSetSpec};
 use k8s_openapi::api::core::v1::{
-    ConfigMap, Container, ContainerPort, EnvVar, EnvVarSource, ObjectFieldSelector,
-    PersistentVolumeClaim, PersistentVolumeClaimSpec, PodSpec, PodTemplateSpec,
-    Probe, Service, ServicePort, ServiceSpec, Volume,
-    VolumeMount, ConfigMapVolumeSource, GRPCAction,
+    Affinity as K8sAffinity, ConfigMap, Container, ContainerPort, EnvVar, EnvVarSource,
+    NodeAffinity as K8sNodeAffinity, NodeSelector as K8sNodeSelector,
+    NodeSelectorRequirement as K8sNodeSelectorRequirement, NodeSelectorTerm as K8sNodeSelectorTerm,
+    ObjectFieldSelector, PersistentVolumeClaim, PersistentVolumeClaimSpec,
+    PodAffinity as K8sPodAffinity, PodAffinityTerm as K8sPodAffinityTerm,
+    PodAntiAffinity as K8sPodAntiAffinity, PodSpec, PodTemplateSpec,
+    PreferredSchedulingTerm as K8sPreferredSchedulingTerm, Probe, Service, ServicePort, ServiceSpec,
+    Toleration as K8sToleration, Volume, VolumeMount, ConfigMapVolumeSource, GRPCAction,
+    WeightedPodAffinityTerm as K8sWeightedPodAffinityTerm,
 };
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelector as K8sLabelSelector;
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::LabelSelectorRequirement as K8sLabelSelectorRequirement;
 use k8s_openapi::apimachinery::pkg::api::resource::Quantity;
-use k8s_openapi::apimachinery::pkg::apis::meta::v1::{LabelSelector, ObjectMeta};
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use kube::{
     api::{Api, Patch, PatchParams},
     runtime::{
@@ -320,7 +327,7 @@ async fn reconcile_statefulset(
         spec: Some(StatefulSetSpec {
             replicas: Some(spec.replicas),
             service_name: format!("{}-headless", name),
-            selector: LabelSelector {
+            selector: K8sLabelSelector {
                 match_labels: Some(labels(name)),
                 ..Default::default()
             },
@@ -422,6 +429,12 @@ async fn reconcile_statefulset(
                     } else {
                         Some(spec.node_selector.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
                     },
+                    tolerations: if spec.tolerations.is_empty() {
+                        None
+                    } else {
+                        Some(spec.tolerations.iter().map(convert_toleration).collect())
+                    },
+                    affinity: spec.affinity.as_ref().map(convert_affinity),
                     ..Default::default()
                 }),
             },
@@ -542,5 +555,205 @@ fn error_policy(cluster: Arc<EtlRouterCluster>, error: &Error, _ctx: Arc<Context
         Action::requeue(Duration::from_secs(30))
     } else {
         Action::requeue(Duration::from_secs(300))
+    }
+}
+
+fn convert_toleration(t: &crate::crd::Toleration) -> K8sToleration {
+    K8sToleration {
+        key: t.key.clone(),
+        operator: t.operator.clone(),
+        value: t.value.clone(),
+        effect: t.effect.clone(),
+        toleration_seconds: t.toleration_seconds,
+    }
+}
+
+fn convert_affinity(a: &crate::crd::Affinity) -> K8sAffinity {
+    K8sAffinity {
+        node_affinity: a.node_affinity.as_ref().map(convert_node_affinity),
+        pod_affinity: a.pod_affinity.as_ref().map(convert_pod_affinity),
+        pod_anti_affinity: a.pod_anti_affinity.as_ref().map(convert_pod_anti_affinity),
+    }
+}
+
+fn convert_node_affinity(na: &crate::crd::NodeAffinity) -> K8sNodeAffinity {
+    K8sNodeAffinity {
+        required_during_scheduling_ignored_during_execution: na
+            .required_during_scheduling_ignored_during_execution
+            .as_ref()
+            .map(|ns| K8sNodeSelector {
+                node_selector_terms: ns
+                    .node_selector_terms
+                    .iter()
+                    .map(convert_node_selector_term)
+                    .collect(),
+            }),
+        preferred_during_scheduling_ignored_during_execution: if na
+            .preferred_during_scheduling_ignored_during_execution
+            .is_empty()
+        {
+            None
+        } else {
+            Some(
+                na.preferred_during_scheduling_ignored_during_execution
+                    .iter()
+                    .map(|p| K8sPreferredSchedulingTerm {
+                        weight: p.weight,
+                        preference: convert_node_selector_term(&p.preference),
+                    })
+                    .collect(),
+            )
+        },
+    }
+}
+
+fn convert_node_selector_term(nst: &crate::crd::NodeSelectorTerm) -> K8sNodeSelectorTerm {
+    K8sNodeSelectorTerm {
+        match_expressions: if nst.match_expressions.is_empty() {
+            None
+        } else {
+            Some(
+                nst.match_expressions
+                    .iter()
+                    .map(|e| K8sNodeSelectorRequirement {
+                        key: e.key.clone(),
+                        operator: e.operator.clone(),
+                        values: if e.values.is_empty() {
+                            None
+                        } else {
+                            Some(e.values.clone())
+                        },
+                    })
+                    .collect(),
+            )
+        },
+        match_fields: if nst.match_fields.is_empty() {
+            None
+        } else {
+            Some(
+                nst.match_fields
+                    .iter()
+                    .map(|f| K8sNodeSelectorRequirement {
+                        key: f.key.clone(),
+                        operator: f.operator.clone(),
+                        values: if f.values.is_empty() {
+                            None
+                        } else {
+                            Some(f.values.clone())
+                        },
+                    })
+                    .collect(),
+            )
+        },
+    }
+}
+
+fn convert_pod_affinity(pa: &crate::crd::PodAffinity) -> K8sPodAffinity {
+    K8sPodAffinity {
+        required_during_scheduling_ignored_during_execution: if pa
+            .required_during_scheduling_ignored_during_execution
+            .is_empty()
+        {
+            None
+        } else {
+            Some(
+                pa.required_during_scheduling_ignored_during_execution
+                    .iter()
+                    .map(convert_pod_affinity_term)
+                    .collect(),
+            )
+        },
+        preferred_during_scheduling_ignored_during_execution: if pa
+            .preferred_during_scheduling_ignored_during_execution
+            .is_empty()
+        {
+            None
+        } else {
+            Some(
+                pa.preferred_during_scheduling_ignored_during_execution
+                    .iter()
+                    .map(|w| K8sWeightedPodAffinityTerm {
+                        weight: w.weight,
+                        pod_affinity_term: convert_pod_affinity_term(&w.pod_affinity_term),
+                    })
+                    .collect(),
+            )
+        },
+    }
+}
+
+fn convert_pod_anti_affinity(paa: &crate::crd::PodAntiAffinity) -> K8sPodAntiAffinity {
+    K8sPodAntiAffinity {
+        required_during_scheduling_ignored_during_execution: if paa
+            .required_during_scheduling_ignored_during_execution
+            .is_empty()
+        {
+            None
+        } else {
+            Some(
+                paa.required_during_scheduling_ignored_during_execution
+                    .iter()
+                    .map(convert_pod_affinity_term)
+                    .collect(),
+            )
+        },
+        preferred_during_scheduling_ignored_during_execution: if paa
+            .preferred_during_scheduling_ignored_during_execution
+            .is_empty()
+        {
+            None
+        } else {
+            Some(
+                paa.preferred_during_scheduling_ignored_during_execution
+                    .iter()
+                    .map(|w| K8sWeightedPodAffinityTerm {
+                        weight: w.weight,
+                        pod_affinity_term: convert_pod_affinity_term(&w.pod_affinity_term),
+                    })
+                    .collect(),
+            )
+        },
+    }
+}
+
+fn convert_pod_affinity_term(pat: &crate::crd::PodAffinityTerm) -> K8sPodAffinityTerm {
+    K8sPodAffinityTerm {
+        label_selector: pat.label_selector.as_ref().map(convert_label_selector),
+        namespace_selector: pat.namespace_selector.as_ref().map(convert_label_selector),
+        namespaces: if pat.namespaces.is_empty() {
+            None
+        } else {
+            Some(pat.namespaces.clone())
+        },
+        topology_key: pat.topology_key.clone(),
+        ..Default::default()
+    }
+}
+
+fn convert_label_selector(ls: &crate::crd::LabelSelector) -> K8sLabelSelector {
+    K8sLabelSelector {
+        match_labels: if ls.match_labels.is_empty() {
+            None
+        } else {
+            Some(ls.match_labels.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        },
+        match_expressions: if ls.match_expressions.is_empty() {
+            None
+        } else {
+            Some(
+                ls.match_expressions
+                    .iter()
+                    .map(|e| K8sLabelSelectorRequirement {
+                        key: e.key.clone(),
+                        operator: e.operator.clone(),
+                        values: if e.values.is_empty() {
+                            None
+                        } else {
+                            Some(e.values.clone())
+                        },
+                    })
+                    .collect(),
+            )
+        },
     }
 }

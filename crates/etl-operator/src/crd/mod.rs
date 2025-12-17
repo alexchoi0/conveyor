@@ -8,7 +8,12 @@ pub use source::{Source, SourceSpec, SourceStatus};
 pub use transform::{Transform, TransformSpec, TransformStatus};
 pub use sink::{Sink, SinkSpec, SinkStatus};
 pub use pipeline::{Pipeline, PipelineSpec, PipelineStatus, DlqConfig};
-pub use cluster::{EtlRouterCluster, EtlRouterClusterSpec, EtlRouterClusterStatus, StorageConfig, ServiceConfig, RaftConfig, NodeStatusInfo};
+pub use cluster::{
+    EtlRouterCluster, EtlRouterClusterSpec, EtlRouterClusterStatus, StorageConfig, ServiceConfig,
+    RaftConfig, NodeStatusInfo, Toleration, Affinity, NodeAffinity, PodAffinity, PodAntiAffinity,
+    NodeSelector, NodeSelectorTerm, NodeSelectorRequirement, PreferredSchedulingTerm,
+    PodAffinityTerm, WeightedPodAffinityTerm, LabelSelector, LabelSelectorRequirement,
+};
 
 use kube::CustomResourceExt;
 

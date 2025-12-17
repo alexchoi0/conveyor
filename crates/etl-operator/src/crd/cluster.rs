@@ -22,6 +22,7 @@ use super::Condition;
 )]
 #[serde(rename_all = "camelCase")]
 pub struct EtlRouterClusterSpec {
+    #[schemars(range(min = 3))]
     #[serde(default = "default_replicas")]
     pub replicas: i32,
     pub image: String,
@@ -41,6 +42,10 @@ pub struct EtlRouterClusterSpec {
     pub metrics: MetricsConfig,
     #[serde(default)]
     pub node_selector: HashMap<String, String>,
+    #[serde(default)]
+    pub tolerations: Vec<Toleration>,
+    #[serde(default)]
+    pub affinity: Option<Affinity>,
     #[serde(default)]
     pub env: HashMap<String, String>,
 }
@@ -176,6 +181,127 @@ impl Default for MetricsConfig {
 
 fn default_metrics_port() -> i32 {
     9090
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Toleration {
+    #[serde(default)]
+    pub key: Option<String>,
+    #[serde(default)]
+    pub operator: Option<String>,
+    #[serde(default)]
+    pub value: Option<String>,
+    #[serde(default)]
+    pub effect: Option<String>,
+    #[serde(default)]
+    pub toleration_seconds: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Affinity {
+    #[serde(default)]
+    pub node_affinity: Option<NodeAffinity>,
+    #[serde(default)]
+    pub pod_affinity: Option<PodAffinity>,
+    #[serde(default)]
+    pub pod_anti_affinity: Option<PodAntiAffinity>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeAffinity {
+    #[serde(default)]
+    pub required_during_scheduling_ignored_during_execution: Option<NodeSelector>,
+    #[serde(default)]
+    pub preferred_during_scheduling_ignored_during_execution: Vec<PreferredSchedulingTerm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeSelector {
+    pub node_selector_terms: Vec<NodeSelectorTerm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeSelectorTerm {
+    #[serde(default)]
+    pub match_expressions: Vec<NodeSelectorRequirement>,
+    #[serde(default)]
+    pub match_fields: Vec<NodeSelectorRequirement>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct NodeSelectorRequirement {
+    pub key: String,
+    pub operator: String,
+    #[serde(default)]
+    pub values: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PreferredSchedulingTerm {
+    pub weight: i32,
+    pub preference: NodeSelectorTerm,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PodAffinity {
+    #[serde(default)]
+    pub required_during_scheduling_ignored_during_execution: Vec<PodAffinityTerm>,
+    #[serde(default)]
+    pub preferred_during_scheduling_ignored_during_execution: Vec<WeightedPodAffinityTerm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PodAntiAffinity {
+    #[serde(default)]
+    pub required_during_scheduling_ignored_during_execution: Vec<PodAffinityTerm>,
+    #[serde(default)]
+    pub preferred_during_scheduling_ignored_during_execution: Vec<WeightedPodAffinityTerm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PodAffinityTerm {
+    #[serde(default)]
+    pub label_selector: Option<LabelSelector>,
+    #[serde(default)]
+    pub namespace_selector: Option<LabelSelector>,
+    #[serde(default)]
+    pub namespaces: Vec<String>,
+    pub topology_key: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct WeightedPodAffinityTerm {
+    pub weight: i32,
+    pub pod_affinity_term: PodAffinityTerm,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct LabelSelector {
+    #[serde(default)]
+    pub match_labels: HashMap<String, String>,
+    #[serde(default)]
+    pub match_expressions: Vec<LabelSelectorRequirement>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct LabelSelectorRequirement {
+    pub key: String,
+    pub operator: String,
+    #[serde(default)]
+    pub values: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
