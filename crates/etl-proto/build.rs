@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "proto/router.proto",
                 "proto/raft.proto",
                 "proto/backup.proto",
+                "proto/sidecar.proto",
             ],
             &["proto/"],
         )?;

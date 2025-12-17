@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::error::{DslError, Result};
 use crate::manifest::{
-    AnyManifest, Metadata, PipelineManifest, PipelineSpec, ResourceKind, SinkManifest,
+    AnyManifest, Metadata, PipelineManifest, PipelineSpec, SinkManifest,
     SinkSpec, SourceManifest, SourceSpec, TransformManifest, TransformSpec,
 };
 
@@ -177,7 +177,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::manifest::{GrpcEndpoint, Manifest, Metadata};
+    use crate::manifest::{GrpcEndpoint, Manifest, Metadata, ResourceKind};
 
     fn make_source(name: &str, endpoint: &str) -> SourceManifest {
         Manifest {

@@ -48,10 +48,6 @@ impl StageBuffer {
         self.records.len()
     }
 
-    fn is_full(&self) -> bool {
-        self.records.len() >= self.max_size
-    }
-
     fn utilization(&self) -> f64 {
         self.records.len() as f64 / self.max_size as f64
     }

@@ -3,7 +3,6 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_stream::Stream;
 use tonic::{Request, Response, Status, Streaming};
-use tracing::warn;
 
 use etl_proto::source::{
     source_router_server::SourceRouter,

@@ -12,7 +12,6 @@ use super::core::{NodeId, Term, LogIndex, RaftCore, RaftConfig, RaftRole};
 use super::storage::LogStorage;
 use super::transport::RaftTransport;
 use super::commands::RouterCommand;
-use super::state_machine::RouterState;
 use super::ServiceCheckpoint;
 use etl_config::ClusterSettings;
 use etl_proto::common::Watermark;

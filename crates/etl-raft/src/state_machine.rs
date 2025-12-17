@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::commands::{RouterCommand, SerializableTimestamp};
+use super::commands::{RouterCommand, SidecarLocalService, SidecarStageAssignment};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RouterState {
@@ -10,6 +10,8 @@ pub struct RouterState {
     pub pipelines: HashMap<String, PipelineState>,
     pub checkpoints: CheckpointState,
     pub groups: HashMap<String, GroupState>,
+    pub sidecars: HashMap<String, SidecarState>,
+    pub service_locations: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,6 +68,18 @@ pub struct GroupState {
     pub members: Vec<String>,
     pub partition_assignments: HashMap<String, Vec<u32>>,
     pub generation: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SidecarState {
+    pub sidecar_id: String,
+    pub pod_name: String,
+    pub namespace: String,
+    pub endpoint: String,
+    pub local_services: Vec<SidecarLocalService>,
+    pub assigned_pipelines: HashMap<String, Vec<SidecarStageAssignment>>,
+    pub registered_at: u64,
+    pub last_heartbeat: u64,
 }
 
 impl RouterState {
@@ -279,6 +293,76 @@ impl RouterState {
                     .entry(source_id)
                     .or_insert_with(HashMap::new)
                     .insert(partition, offset);
+            }
+
+            RouterCommand::RegisterSidecar {
+                sidecar_id,
+                pod_name,
+                namespace,
+                endpoint,
+                local_services,
+            } => {
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs();
+
+                for svc in &local_services {
+                    self.service_locations
+                        .insert(svc.service_name.clone(), sidecar_id.clone());
+                }
+
+                self.sidecars.insert(
+                    sidecar_id.clone(),
+                    SidecarState {
+                        sidecar_id,
+                        pod_name,
+                        namespace,
+                        endpoint,
+                        local_services,
+                        assigned_pipelines: HashMap::new(),
+                        registered_at: now,
+                        last_heartbeat: now,
+                    },
+                );
+            }
+
+            RouterCommand::DeregisterSidecar { sidecar_id } => {
+                if let Some(sidecar) = self.sidecars.remove(&sidecar_id) {
+                    for svc in &sidecar.local_services {
+                        self.service_locations.remove(&svc.service_name);
+                    }
+                }
+            }
+
+            RouterCommand::UpdateSidecarHeartbeat {
+                sidecar_id,
+                timestamp,
+            } => {
+                if let Some(sidecar) = self.sidecars.get_mut(&sidecar_id) {
+                    sidecar.last_heartbeat = timestamp;
+                }
+            }
+
+            RouterCommand::AssignPipelineToSidecar {
+                pipeline_id,
+                sidecar_id,
+                stage_assignments,
+            } => {
+                if let Some(sidecar) = self.sidecars.get_mut(&sidecar_id) {
+                    sidecar
+                        .assigned_pipelines
+                        .insert(pipeline_id, stage_assignments);
+                }
+            }
+
+            RouterCommand::RevokePipelineFromSidecar {
+                pipeline_id,
+                sidecar_id,
+            } => {
+                if let Some(sidecar) = self.sidecars.get_mut(&sidecar_id) {
+                    sidecar.assigned_pipelines.remove(&pipeline_id);
+                }
             }
         }
 

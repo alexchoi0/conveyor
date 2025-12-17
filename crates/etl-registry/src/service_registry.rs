@@ -52,6 +52,7 @@ impl RegisteredService {
 }
 
 pub struct ServiceRegistry {
+    #[allow(dead_code)]
     raft_node: Arc<RwLock<RaftNode>>,
     services: Arc<RwLock<HashMap<String, RegisteredService>>>,
     by_name: Arc<RwLock<HashMap<String, Vec<String>>>>,

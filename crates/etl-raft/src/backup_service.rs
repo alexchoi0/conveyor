@@ -309,7 +309,7 @@ async fn stream_directory_as_tar(
 }
 
 fn extract_tar_zstd(archive_path: &std::path::Path, extract_path: &std::path::Path) -> Result<()> {
-    use std::io::Read;
+    
 
     let file = std::fs::File::open(archive_path)?;
     let decoder = zstd::Decoder::new(file)?;

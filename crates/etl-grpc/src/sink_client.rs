@@ -1,13 +1,10 @@
-use std::sync::Arc;
 use anyhow::Result;
 use tonic::transport::Channel;
-use tracing::{debug, warn};
 
 use etl_proto::sink::{
     sink_service_client::SinkServiceClient,
     WriteBatchRequest, WriteBatchResponse, WriteOptions,
     CapacityResponse, FlushRequest, FlushResponse,
-    DeliveryGuarantee,
 };
 use etl_proto::common::{RecordBatch, Empty};
 

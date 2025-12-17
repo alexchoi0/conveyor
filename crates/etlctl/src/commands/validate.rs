@@ -19,7 +19,7 @@ pub struct ValidateArgs {
     recursive: bool,
 }
 
-pub async fn run(ctx: &Context, args: ValidateArgs) -> Result<()> {
+pub async fn run(_ctx: &Context, args: ValidateArgs) -> Result<()> {
     let mut registry = Registry::new();
     let mut manifest_count = 0;
     let mut error_count = 0;

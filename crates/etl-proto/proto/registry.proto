@@ -22,6 +22,7 @@ message RegisterRequest {
   etl.common.Endpoint endpoint = 2;
   ServiceMetadata metadata = 3;
   google.protobuf.Duration heartbeat_interval = 4;
+  string sidecar_id = 10;
 }
 
 message ServiceMetadata {
