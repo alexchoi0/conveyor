@@ -1,0 +1,16 @@
+apiVersion: etl.router/v1
+kind: Transform
+metadata:
+  name: mask-pii
+  namespace: default
+spec:
+  grpc:
+    endpoint: mask-svc:50051
+    proto: etl.transform.TransformService
+  config:
+    type: mask
+    fields:
+      - field: email
+        strategy: partial
+      - field: ssn
+        strategy: redact

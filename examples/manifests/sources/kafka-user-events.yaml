@@ -1,0 +1,16 @@
+apiVersion: etl.router/v1
+kind: Source
+metadata:
+  name: kafka-user-events
+  namespace: default
+  labels:
+    team: data-platform
+spec:
+  grpc:
+    endpoint: kafka-source-svc:50051
+    proto: etl.source.SourceService
+  config:
+    brokers:
+      - kafka:9092
+    topic: user-events
+    consumerGroup: etl-router

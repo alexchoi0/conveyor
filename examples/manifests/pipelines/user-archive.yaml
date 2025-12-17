@@ -1,0 +1,13 @@
+apiVersion: etl.router/v1
+kind: Pipeline
+metadata:
+  name: user-archive
+  namespace: default
+  labels:
+    team: data-platform
+spec:
+  source: kafka-user-events
+  steps:
+    - filter-active-users
+    - mask-pii
+  sink: grpc-analytics

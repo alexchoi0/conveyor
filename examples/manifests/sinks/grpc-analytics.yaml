@@ -1,0 +1,11 @@
+apiVersion: etl.router/v1
+kind: Sink
+metadata:
+  name: grpc-analytics
+  namespace: default
+spec:
+  grpc:
+    endpoint: analytics-svc:50051
+    proto: etl.sink.SinkService
+  config:
+    timeout_ms: 5000

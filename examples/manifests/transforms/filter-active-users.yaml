@@ -1,0 +1,15 @@
+apiVersion: etl.router/v1
+kind: Transform
+metadata:
+  name: filter-active-users
+  namespace: default
+spec:
+  grpc:
+    endpoint: filter-svc:50051
+    proto: etl.transform.TransformService
+  config:
+    type: filter
+    condition:
+      metadataEquals:
+        key: status
+        value: active

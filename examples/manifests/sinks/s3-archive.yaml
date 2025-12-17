@@ -1,0 +1,13 @@
+apiVersion: etl.router/v1
+kind: Sink
+metadata:
+  name: s3-archive
+  namespace: default
+spec:
+  grpc:
+    endpoint: s3-sink-svc:50051
+    proto: etl.sink.SinkService
+  config:
+    bucket: user-events-archive
+    prefix: v1/
+    format: parquet

@@ -1,0 +1,17 @@
+[package]
+name = "etl-buffer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Buffer management and backpressure for ETL Router"
+
+[dependencies]
+etl-proto.workspace = true
+etl-config.workspace = true
+
+tokio.workspace = true
+serde.workspace = true
+tracing.workspace = true
+parking_lot.workspace = true
+anyhow.workspace = true

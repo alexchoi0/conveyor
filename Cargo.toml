@@ -1,0 +1,100 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/etl-proto",
+    "crates/etl-config",
+    "crates/etl-raft",
+    "crates/etl-registry",
+    "crates/etl-buffer",
+    "crates/etl-routing",
+    "crates/etl-metrics",
+    "crates/etl-grpc",
+    "crates/etl-graphql",
+    "crates/etl-dsl",
+    "crates/etl-dlq",
+    "crates/etl-router",
+    "crates/etlctl",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["ETL Router Team"]
+license = "MIT"
+
+[workspace.dependencies]
+# Internal crates
+etl-proto = { path = "crates/etl-proto" }
+etl-config = { path = "crates/etl-config" }
+etl-raft = { path = "crates/etl-raft" }
+etl-registry = { path = "crates/etl-registry" }
+etl-buffer = { path = "crates/etl-buffer" }
+etl-routing = { path = "crates/etl-routing" }
+etl-metrics = { path = "crates/etl-metrics" }
+etl-grpc = { path = "crates/etl-grpc" }
+etl-graphql = { path = "crates/etl-graphql" }
+etl-dsl = { path = "crates/etl-dsl" }
+etl-dlq = { path = "crates/etl-dlq" }
+etlctl = { path = "crates/etlctl" }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+async-stream = "0.3"
+async-trait = "0.1"
+
+# gRPC
+tonic = { version = "0.12", features = ["tls"] }
+tonic-build = "0.12"
+prost = "0.13"
+prost-types = "0.13"
+
+# Storage
+rocksdb = "0.22"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1"
+
+# Metrics
+metrics = "0.23"
+metrics-exporter-prometheus = "0.15"
+
+# Config
+config = "0.14"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Utils
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "1"
+anyhow = "1"
+parking_lot = "0.12"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1"
+clap = { version = "4", features = ["derive"] }
+rand = "0.8"
+
+# HTTP
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+
+# GraphQL
+async-graphql = { version = "7", features = ["chrono"] }
+async-graphql-axum = "7"
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors"] }
+
+# Compression
+tar = "0.4"
+flate2 = "1"
+zstd = "0.13"
+
+# Testing
+tempfile = "3"

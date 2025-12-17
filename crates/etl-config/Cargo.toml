@@ -1,0 +1,13 @@
+[package]
+name = "etl-config"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Configuration management for ETL Router"
+
+[dependencies]
+config.workspace = true
+serde.workspace = true
+anyhow.workspace = true
+tracing.workspace = true

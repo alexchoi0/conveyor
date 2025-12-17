@@ -1,0 +1,16 @@
+apiVersion: etl.router/v1
+kind: Pipeline
+metadata:
+  name: user-analytics
+  namespace: default
+  labels:
+    team: analytics
+spec:
+  source: kafka-user-events
+  steps:
+    - filter-active-users
+    - validate-user-schema
+  sink: s3-archive
+  dlq:
+    sink: error-handler
+    maxRetries: 3

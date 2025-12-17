@@ -1,0 +1,11 @@
+apiVersion: etl.router/v1
+kind: Sink
+metadata:
+  name: error-handler
+  namespace: default
+spec:
+  grpc:
+    endpoint: error-handler-svc:50051
+    proto: etl.sink.SinkService
+  config:
+    deadLetterQueue: true
