@@ -43,7 +43,7 @@ cargo run -p conveyor-sidecar
 │                      Pod                            │
 ├─────────────────────────────────────────────────────┤
 │  ┌──────────────────────────────────────────────┐   │
-│  │              conveyor-sidecar                     │   │
+│  │              conveyor-sidecar                │   │
 │  │  ┌───────────┐  ┌───────────┐  ┌─────────┐   │   │
 │  │  │ Discovery │  │ Cluster   │  │ Data    │   │   │
 │  │  │ Module    │  │ Client    │  │ Plane   │   │   │

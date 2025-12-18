@@ -36,11 +36,11 @@ This document describes the architecture of the Conveyor system, a distributed d
 │  │   └──────────────┘    └──────────────┘    └──────────────┘            │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
-         ▲                           ▲
-         │                           │
-    ┌────┴────┐                ┌─────┴─────┐
-    │ conveyorctl  │                │ Dashboard │
-    └─────────┘                └───────────┘
+         ▲                               ▲
+         │                               │
+    ┌────┴────────┐                ┌─────┴─────┐
+    │ conveyorctl │                │ Dashboard │
+    └─────────────┘                └───────────┘
 ```
 
 ## Core Components
@@ -48,28 +48,28 @@ This document describes the architecture of the Conveyor system, a distributed d
 ### Component Hierarchy
 
 ```
-Binaries                          Libraries
-─────────                         ─────────
-┌─────────────┐                   ┌───────────────┐
+     Binaries                                Libraries
+     ─────────                               ─────────
+┌──────────────────┐                   ┌────────────────────┐
 │ conveyor-router  │──────────────────▶│  conveyor-raft     │
-│ (main)      │──────────────────▶│  conveyor-grpc     │
-└─────────────┘──────────────────▶│  conveyor-registry │
-                                  │  conveyor-graphql  │
-                                  └───────────────┘
-┌─────────────┐                   ┌──────────────┐
+│      (main)      │──────────────────▶│  conveyor-grpc     │
+└──────────────────┘──────────────────▶│  conveyor-registry │
+                                       │  conveyor-graphql  │
+                                       └────────────────────┘
+┌──────────────────┐                   ┌───────────────────┐
 │ conveyor-sidecar │──────────────────▶│  conveyor-grpc    │
-│ (pod)       │──────────────────▶│  conveyor-buffer  │
-└─────────────┘──────────────────▶│  conveyor-routing │
-                                  └──────────────┘
-┌─────────────┐                   ┌─────────────┐
-│ conveyor-operator│──────────────────▶│  conveyor-grpc   │
-│ (k8s)       │                   └─────────────┘
-└─────────────┘
+│      (pod)       │──────────────────▶│  conveyor-buffer  │
+└──────────────────┘──────────────────▶│  conveyor-routing │
+                                       └───────────────────┘
+┌───────────────────┐                  ┌─────────────────┐
+│ conveyor-operator │─────────────────▶│  conveyor-grpc  │
+│       (k8s)       │                  └─────────────────┘
+└───────────────────┘
 
-┌─────────────┐                   ┌─────────────┐
-│   conveyorctl    │──────────────────▶│  conveyor-dsl    │
-│ (CLI)       │──────────────────▶│  conveyor-grpc   │
-└─────────────┘                   └─────────────┘
+┌──────────────────┐                   ┌────────────────┐
+│   conveyorctl    │──────────────────▶│  conveyor-dsl  │
+│      (CLI)       │──────────────────▶│  conveyor-grpc │
+└──────────────────┘                   └────────────────┘
 
 Shared: conveyor-proto, conveyor-config, conveyor-metrics, conveyor-dlq
 ```
