@@ -12,37 +12,35 @@ ETL Router is a **control plane** for data pipelines. Instead of hardcoding conn
 - **High Availability** - Raft consensus ensures no single point of failure
 - **Kubernetes Native** - Deploy with CRDs and manage with `kubectl`
 
-```mermaid
-flowchart TB
-    subgraph control["Control Plane"]
-        subgraph raft["Router Cluster (Raft)"]
-            r1["Leader"]
-            r2["Follower"]
-            r3["Follower"]
-            r1 <-.-> r2 <-.-> r3
-        end
-    end
-
-    subgraph data["Data Plane (Sidecars)"]
-        subgraph src["Source Pods"]
-            sc1["Sidecar"] --- kafka["Kafka"]
-            sc2["Sidecar"] --- s3in["S3"]
-        end
-
-        subgraph tx["Transform Pods"]
-            sc3["Sidecar"] --- filter["Filter"]
-            sc4["Sidecar"] --- enrich["Enrich"]
-        end
-
-        subgraph sk["Sink Pods"]
-            sc5["Sidecar"] --- ch["ClickHouse"]
-            sc6["Sidecar"] --- pg["Postgres"]
-        end
-    end
-
-    raft -.->|Assign pipelines| data
-    sc1 & sc2 -->|Records| sc3 & sc4
-    sc3 & sc4 -->|Records| sc5 & sc6
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CONTROL PLANE                            │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │              Router Cluster (Raft Consensus)              │  │
+│  │         ┌──────────┐ ┌──────────┐ ┌──────────┐           │  │
+│  │         │  Leader  │ │ Follower │ │ Follower │           │  │
+│  │         └────┬─────┘ └────┬─────┘ └────┬─────┘           │  │
+│  └──────────────┼────────────┼────────────┼─────────────────┘  │
+└─────────────────┼────────────┼────────────┼─────────────────────┘
+                  │            │            │
+                  │     Pipeline Assignments
+                  ▼            ▼            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         DATA PLANE                              │
+│                                                                 │
+│   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐    │
+│   │ Source Pod  │      │Transform Pod│      │  Sink Pod   │    │
+│   │ ┌─────────┐ │      │ ┌─────────┐ │      │ ┌─────────┐ │    │
+│   │ │ Sidecar │─┼─────▶│ │ Sidecar │─┼─────▶│ │ Sidecar │ │    │
+│   │ └────┬────┘ │      │ └────┬────┘ │      │ └────┬────┘ │    │
+│   │      │      │      │      │      │      │      │      │    │
+│   │ ┌────▼────┐ │      │ ┌────▼────┐ │      │ ┌────▼────┐ │    │
+│   │ │  Kafka  │ │      │ │ Filter  │ │      │ │ ClickHs │ │    │
+│   │ └─────────┘ │      │ └─────────┘ │      │ └─────────┘ │    │
+│   └─────────────┘      └─────────────┘      └─────────────┘    │
+│                                                                 │
+│                    Records flow pod-to-pod                      │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Features
@@ -60,34 +58,20 @@ flowchart TB
 
 ## How It Works
 
-```mermaid
-flowchart TB
-    subgraph pod1["Pod: kafka-source"]
-        sidecar1["Sidecar"]
-        kafka["Kafka Source<br/>(gRPC)"]
-        sidecar1 ---|localhost| kafka
-    end
+```
+1. Sidecars register with router     2. Router assigns pipeline stages
+   ┌─────────┐                          ┌─────────┐
+   │ Sidecar │ ───"I have Kafka"───▶    │ Router  │
+   └─────────┘                          │ Cluster │
+   ┌─────────┐                          │         │ ───"You handle stage 1"──▶ Sidecar
+   │ Sidecar │ ───"I have Filter"──▶    │  (Raft) │
+   └─────────┘                          └─────────┘
 
-    subgraph pod2["Pod: filter-transform"]
-        sidecar2["Sidecar"]
-        filter["Filter Transform<br/>(gRPC)"]
-        sidecar2 ---|localhost| filter
-    end
-
-    subgraph pod3["Pod: s3-sink"]
-        sidecar3["Sidecar"]
-        s3["S3 Sink<br/>(gRPC)"]
-        sidecar3 ---|localhost| s3
-    end
-
-    router["Router Cluster"]
-
-    sidecar1 <-->|"1. Register services<br/>2. Get assignments"| router
-    sidecar2 <-->|Register & assign| router
-    sidecar3 <-->|Register & assign| router
-
-    sidecar1 -->|"Records"| sidecar2
-    sidecar2 -->|"Records"| sidecar3
+3. Records flow directly between sidecars (not through router)
+   ┌─────────┐         ┌─────────┐         ┌─────────┐
+   │ Sidecar │ ──────▶ │ Sidecar │ ──────▶ │ Sidecar │
+   │ (Kafka) │ records │ (Filter)│ records │(ClickHs)│
+   └─────────┘         └─────────┘         └─────────┘
 ```
 
 1. **Sidecars register** with the router cluster, reporting their local services
@@ -210,27 +194,31 @@ spec:
 
 ## Architecture Overview
 
-```mermaid
-flowchart TB
-    subgraph control["Control Plane"]
-        subgraph raft["Router Cluster"]
-            leader["Leader"]
-            follower1["Follower"]
-            follower2["Follower"]
-        end
-        operator["K8s Operator"]
-    end
-
-    subgraph data["Data Plane"]
-        s1["Sidecar"] --> s2["Sidecar"]
-        s2 --> s3["Sidecar"]
-    end
-
-    operator -->|Reconcile| raft
-    raft -->|Assign stages| data
-
-    cli["etlctl"] --> raft
-    web["Dashboard"] --> raft
+```
+                    ┌──────────┐  ┌───────────┐
+                    │  etlctl  │  │ Dashboard │
+                    └────┬─────┘  └─────┬─────┘
+                         │              │
+                         ▼              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CONTROL PLANE                                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Router Cluster:  Leader ◄──► Follower ◄──► Follower │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                          ▲                                  │
+│                          │                                  │
+│                 ┌────────┴────────┐                        │
+│                 │   K8s Operator  │                        │
+│                 └─────────────────┘                        │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                    Assign Stages
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  DATA PLANE                                                 │
+│       Sidecar ──────▶ Sidecar ──────▶ Sidecar              │
+│       (source)        (transform)     (sink)                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
