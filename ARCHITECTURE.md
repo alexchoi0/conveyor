@@ -1,6 +1,6 @@
-# ETL Router Architecture
+# Conveyor Architecture
 
-This document describes the architecture of the ETL Router system, a distributed data routing platform for building ETL pipelines.
+This document describes the architecture of the Conveyor system, a distributed data routing platform for building Conveyor pipelines.
 
 ## System Overview
 
@@ -11,12 +11,12 @@ This document describes the architecture of the ETL Router system, a distributed
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │                         CONTROL PLANE                                 │  │
 │  │                                                                       │  │
-│  │   ┌─────────────┐    ┌─────────────────────────────────────────────┐ │  │
-│  │   │ ETL Operator│    │         Router Cluster (Raft)               │ │  │
-│  │   └──────┬──────┘    │  ┌────────┐  ┌────────┐  ┌────────┐        │ │  │
-│  │          │           │  │ Leader │◄─┤Follower│◄─┤Follower│        │ │  │
-│  │          └──────────▶│  └────────┘  └────────┘  └────────┘        │ │  │
-│  │                      └─────────────────────────────────────────────┘ │  │
+│  │   ┌─────────────┐    ┌─────────────────────────────────────────────┐  │  │
+│  │   │ ETL Operator│    │         Router Cluster (Raft)               │  │  │
+│  │   └──────┬──────┘    │  ┌────────┐  ┌────────┐  ┌────────┐         │  │  │
+│  │          │           │  │ Leader │◄─┤Follower│◄─┤Follower│         │  │  │
+│  │          └──────────▶│  └────────┘  └────────┘  └────────┘         │  │  │
+│  │                      └─────────────────────────────────────────────┘  │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │                                      │                                      │
 │                               Assign Stages                                 │
@@ -24,22 +24,22 @@ This document describes the architecture of the ETL Router system, a distributed
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
 │  │                          DATA PLANE                                   │  │
 │  │                                                                       │  │
-│  │   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐           │  │
-│  │   │   Pod A      │    │   Pod B      │    │   Pod C      │           │  │
-│  │   │  ┌────────┐  │    │  ┌────────┐  │    │  ┌────────┐  │           │  │
-│  │   │  │Sidecar │──┼───▶│  │Sidecar │──┼───▶│  │Sidecar │  │           │  │
-│  │   │  └───┬────┘  │    │  └───┬────┘  │    │  └───┬────┘  │           │  │
-│  │   │      │       │    │      │       │    │      │       │           │  │
-│  │   │  ┌───▼────┐  │    │  ┌───▼────┐  │    │  ┌───▼────┐  │           │  │
-│  │   │  │ Source │  │    │  │Transform│  │    │  │  Sink  │  │           │  │
-│  │   │  └────────┘  │    │  └────────┘  │    │  └────────┘  │           │  │
-│  │   └──────────────┘    └──────────────┘    └──────────────┘           │  │
+│  │   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐            │  │
+│  │   │   Pod A      │    │   Pod B      │    │   Pod C      │            │  │
+│  │   │  ┌────────┐  │    │  ┌────────┐  │    │  ┌────────┐  │            │  │
+│  │   │  │Sidecar │──┼───▶│  │Sidecar │──┼───▶│  │Sidecar │  │            │  │
+│  │   │  └───┬────┘  │    │  └───┬────┘  │    │  └───┬────┘  │            │  │
+│  │   │      │       │    │      │       │    │      │       │            │  │
+│  │   │  ┌───▼────┐  │    │  ┌───▼─────┐ │    │  ┌───▼────┐  │            │  │
+│  │   │  │ Source │  │    │  │Transform│ │    │  │  Sink  │  │            │  │
+│  │   │  └────────┘  │    │  └─────────┘ │    │  └────────┘  │            │  │
+│  │   └──────────────┘    └──────────────┘    └──────────────┘            │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────┘
          ▲                           ▲
          │                           │
     ┌────┴────┐                ┌─────┴─────┐
-    │ etlctl  │                │ Dashboard │
+    │ conveyorctl  │                │ Dashboard │
     └─────────┘                └───────────┘
 ```
 
@@ -50,27 +50,28 @@ This document describes the architecture of the ETL Router system, a distributed
 ```
 Binaries                          Libraries
 ─────────                         ─────────
+┌─────────────┐                   ┌───────────────┐
+│ conveyor-router  │──────────────────▶│  conveyor-raft     │
+│ (main)      │──────────────────▶│  conveyor-grpc     │
+└─────────────┘──────────────────▶│  conveyor-registry │
+                                  │  conveyor-graphql  │
+                                  └───────────────┘
+┌─────────────┐                   ┌──────────────┐
+│ conveyor-sidecar │──────────────────▶│  conveyor-grpc    │
+│ (pod)       │──────────────────▶│  conveyor-buffer  │
+└─────────────┘──────────────────▶│  conveyor-routing │
+                                  └──────────────┘
 ┌─────────────┐                   ┌─────────────┐
-│ etl-router  │──────────────────▶│  etl-raft   │
-│ (main)      │──────────────────▶│  etl-grpc   │
-└─────────────┘──────────────────▶│  etl-registry│
-                                  │  etl-graphql │
-┌─────────────┐                   └─────────────┘
-│ etl-sidecar │──────────────────▶│  etl-grpc   │
-│ (pod)       │──────────────────▶│  etl-buffer │
-└─────────────┘──────────────────▶│  etl-routing│
-                                  └─────────────┘
-┌─────────────┐
-│ etl-operator│──────────────────▶│  etl-grpc   │
+│ conveyor-operator│──────────────────▶│  conveyor-grpc   │
 │ (k8s)       │                   └─────────────┘
 └─────────────┘
 
 ┌─────────────┐                   ┌─────────────┐
-│   etlctl    │──────────────────▶│  etl-dsl    │
-│ (CLI)       │──────────────────▶│  etl-grpc   │
+│   conveyorctl    │──────────────────▶│  conveyor-dsl    │
+│ (CLI)       │──────────────────▶│  conveyor-grpc   │
 └─────────────┘                   └─────────────┘
 
-Shared: etl-proto, etl-config, etl-metrics, etl-dlq
+Shared: conveyor-proto, conveyor-config, conveyor-metrics, conveyor-dlq
 ```
 
 ## Router Cluster
@@ -411,21 +412,21 @@ LookupService
 
 | Crate | Purpose |
 |-------|---------|
-| `etl-router` | Main router binary, orchestrates all components |
-| `etl-sidecar` | Sidecar binary for pod deployment |
-| `etl-operator` | Kubernetes operator for CRD management |
-| `etlctl` | CLI tool for pipeline management |
-| `etl-raft` | Raft consensus implementation |
-| `etl-grpc` | gRPC server implementations |
-| `etl-proto` | Protocol buffer definitions |
-| `etl-registry` | Service registry logic |
-| `etl-routing` | Record routing and watermarks |
-| `etl-dsl` | Pipeline DSL parsing and optimization |
-| `etl-buffer` | Record buffering with backpressure |
-| `etl-dlq` | Dead letter queue handling |
-| `etl-config` | Configuration management |
-| `etl-metrics` | Prometheus metrics |
-| `etl-graphql` | GraphQL API for dashboard |
+| `conveyor-router` | Main router binary, orchestrates all components |
+| `conveyor-sidecar` | Sidecar binary for pod deployment |
+| `conveyor-operator` | Kubernetes operator for CRD management |
+| `conveyorctl` | CLI tool for pipeline management |
+| `conveyor-raft` | Raft consensus implementation |
+| `conveyor-grpc` | gRPC server implementations |
+| `conveyor-proto` | Protocol buffer definitions |
+| `conveyor-registry` | Service registry logic |
+| `conveyor-routing` | Record routing and watermarks |
+| `conveyor-dsl` | Pipeline DSL parsing and optimization |
+| `conveyor-buffer` | Record buffering with backpressure |
+| `conveyor-dlq` | Dead letter queue handling |
+| `conveyor-config` | Configuration management |
+| `conveyor-metrics` | Prometheus metrics |
+| `conveyor-graphql` | GraphQL API for dashboard |
 
 ## Design Principles
 
