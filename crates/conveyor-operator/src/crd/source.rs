@@ -1,12 +1,14 @@
+use std::ops::Deref;
+use conveyor_dsl::SourceSpec;
 use kube::CustomResource;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{Condition, GrpcEndpoint};
+use super::Condition;
 
 #[derive(CustomResource, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[kube(
-    group = "etl.router",
+    group = "conveyor.dev",
     version = "v1",
     kind = "Source",
     plural = "sources",
@@ -17,11 +19,16 @@ use super::{Condition, GrpcEndpoint};
     printcolumn = r#"{"name":"Ready", "type":"string", "jsonPath":".status.conditions[?(@.type=='Ready')].status"}"#,
     printcolumn = r#"{"name":"Age", "type":"date", "jsonPath":".metadata.creationTimestamp"}"#
 )]
-#[serde(rename_all = "camelCase")]
-pub struct SourceSpec {
-    pub grpc: GrpcEndpoint,
-    #[serde(default)]
-    pub config: serde_json::Value,
+pub struct SourceCrdSpec {
+    #[serde(flatten)]
+    pub inner: SourceSpec,
+}
+
+impl Deref for SourceCrdSpec {
+    type Target = SourceSpec;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]

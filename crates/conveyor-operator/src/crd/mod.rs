@@ -4,15 +4,19 @@ mod sink;
 mod pipeline;
 mod cluster;
 
-pub use source::{Source, SourceSpec, SourceStatus};
-pub use transform::{Transform, TransformSpec, TransformStatus};
-pub use sink::{Sink, SinkSpec, SinkStatus};
-pub use pipeline::{Pipeline, PipelineSpec, PipelineStatus, DlqConfig};
+pub use source::{Source, SourceStatus};
+pub use transform::{Transform, TransformStatus};
+pub use sink::{Sink, SinkStatus};
+pub use pipeline::{Pipeline, PipelineStatus};
 pub use cluster::{
-    EtlRouterCluster, EtlRouterClusterSpec, EtlRouterClusterStatus, StorageConfig, ServiceConfig,
+    ConveyorCluster, ConveyorClusterSpec, ConveyorClusterStatus, StorageConfig, ServiceConfig,
     RaftConfig, NodeStatusInfo, Toleration, Affinity, NodeAffinity, PodAffinity, PodAntiAffinity,
     NodeSelector, NodeSelectorTerm, NodeSelectorRequirement, PreferredSchedulingTerm,
     PodAffinityTerm, WeightedPodAffinityTerm, LabelSelector, LabelSelectorRequirement,
+};
+
+pub use conveyor_dsl::{
+    DlqConfig, GrpcEndpoint, PipelineSpec, SinkSpec, SourceSpec, TlsConfig, TransformSpec,
 };
 
 use kube::CustomResourceExt;
@@ -27,30 +31,7 @@ pub fn print_crds() {
     println!("---");
     println!("{}", serde_yaml::to_string(&Pipeline::crd()).unwrap());
     println!("---");
-    println!("{}", serde_yaml::to_string(&EtlRouterCluster::crd()).unwrap());
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct GrpcEndpoint {
-    pub endpoint: String,
-    #[serde(default)]
-    pub proto: Option<String>,
-    #[serde(default)]
-    pub tls: Option<TlsConfig>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct TlsConfig {
-    #[serde(default)]
-    pub ca_cert: Option<String>,
-    #[serde(default)]
-    pub client_cert: Option<String>,
-    #[serde(default)]
-    pub client_key: Option<String>,
-    #[serde(default)]
-    pub insecure_skip_verify: bool,
+    println!("{}", serde_yaml::to_string(&ConveyorCluster::crd()).unwrap());
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]

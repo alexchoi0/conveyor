@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::ops::Deref;
+use conveyor_dsl::PipelineSpec;
 use kube::CustomResource;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -7,7 +9,7 @@ use super::Condition;
 
 #[derive(CustomResource, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[kube(
-    group = "etl.router",
+    group = "conveyor.dev",
     version = "v1",
     kind = "Pipeline",
     plural = "pipelines",
@@ -19,44 +21,16 @@ use super::Condition;
     printcolumn = r#"{"name":"Ready", "type":"string", "jsonPath":".status.conditions[?(@.type=='Ready')].status"}"#,
     printcolumn = r#"{"name":"Age", "type":"date", "jsonPath":".metadata.creationTimestamp"}"#
 )]
-#[serde(rename_all = "camelCase")]
-pub struct PipelineSpec {
-    pub source: String,
-    #[serde(default)]
-    pub steps: Vec<String>,
-    pub sink: String,
-    #[serde(default)]
-    pub dlq: Option<DlqConfig>,
-    #[serde(default = "default_enabled")]
-    pub enabled: bool,
+pub struct PipelineCrdSpec {
+    #[serde(flatten)]
+    pub inner: PipelineSpec,
 }
 
-fn default_enabled() -> bool {
-    true
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct DlqConfig {
-    pub sink: String,
-    #[serde(default = "default_max_retries")]
-    pub max_retries: u32,
-    #[serde(default = "default_retry_backoff_ms")]
-    pub retry_backoff_ms: u64,
-    #[serde(default = "default_max_retry_backoff_ms")]
-    pub max_retry_backoff_ms: u64,
-}
-
-fn default_max_retries() -> u32 {
-    3
-}
-
-fn default_retry_backoff_ms() -> u64 {
-    100
-}
-
-fn default_max_retry_backoff_ms() -> u64 {
-    30_000
+impl Deref for PipelineCrdSpec {
+    type Target = PipelineSpec;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]

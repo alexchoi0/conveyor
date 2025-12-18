@@ -237,6 +237,7 @@ mod tests {
                 steps: steps.iter().map(|s| s.to_string()).collect(),
                 sink: sink.to_string(),
                 dlq: None,
+                enabled: true,
             },
         }
     }

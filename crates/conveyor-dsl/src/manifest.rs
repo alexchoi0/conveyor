@@ -1,16 +1,17 @@
 use std::collections::HashMap;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct Manifest<T> {
+pub struct Manifest<T: JsonSchema> {
     pub api_version: String,
     pub kind: ResourceKind,
     pub metadata: Metadata,
     pub spec: T,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub enum ResourceKind {
     Source,
     Transform,
@@ -18,7 +19,7 @@ pub enum ResourceKind {
     Pipeline,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Metadata {
     pub name: String,
     #[serde(default = "default_namespace")]
@@ -54,7 +55,8 @@ impl Metadata {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct GrpcEndpoint {
     pub endpoint: String,
     #[serde(default)]
@@ -63,7 +65,7 @@ pub struct GrpcEndpoint {
     pub tls: Option<TlsConfig>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TlsConfig {
     #[serde(default)]
@@ -76,28 +78,31 @@ pub struct TlsConfig {
     pub insecure_skip_verify: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct SourceSpec {
     pub grpc: GrpcEndpoint,
     #[serde(default)]
     pub config: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct TransformSpec {
     pub grpc: GrpcEndpoint,
     #[serde(default)]
     pub config: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct SinkSpec {
     pub grpc: GrpcEndpoint,
     #[serde(default)]
     pub config: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PipelineSpec {
     pub source: String,
@@ -106,9 +111,15 @@ pub struct PipelineSpec {
     pub sink: String,
     #[serde(default)]
     pub dlq: Option<DlqConfig>,
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+fn default_enabled() -> bool {
+    true
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DlqConfig {
     pub sink: String,

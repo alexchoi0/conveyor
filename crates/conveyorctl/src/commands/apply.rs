@@ -108,7 +108,7 @@ fn load_manifest_file(path: &PathBuf) -> Result<AnyManifest> {
             AnyManifest::Sink(m)
         }
         ResourceKind::Pipeline => {
-            let m: conveyor_dsl::LegacyPipelineManifest = serde_yaml::from_str(&content)?;
+            let m: conveyor_dsl::PipelineManifest = serde_yaml::from_str(&content)?;
             AnyManifest::Pipeline(m)
         }
     };

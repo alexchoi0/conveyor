@@ -14,10 +14,9 @@ pub use validation::{validate, validate_backup, validate_restore};
 pub use convert::convert;
 
 pub use manifest::{
-    AnyManifest, DlqConfig, GrpcEndpoint, Manifest, Metadata,
-    PipelineManifest as LegacyPipelineManifest, PipelineSpec as LegacyPipelineSpec,
-    ResourceKind, SinkManifest, SinkSpec, SourceManifest, SourceSpec,
-    TlsConfig as ManifestTlsConfig, TransformManifest, TransformSpec,
+    AnyManifest, DlqConfig, GrpcEndpoint, Manifest, Metadata, PipelineManifest,
+    PipelineSpec, ResourceKind, SinkManifest, SinkSpec, SourceManifest, SourceSpec,
+    TlsConfig, TransformManifest, TransformSpec,
 };
 pub use registry::Registry;
 pub use optimizer::{DagEdge, OptimizedDag, Optimizer, SinkNode, SourceNode, StageNode};

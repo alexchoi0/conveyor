@@ -1,12 +1,14 @@
+use std::ops::Deref;
+use conveyor_dsl::SinkSpec;
 use kube::CustomResource;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{Condition, GrpcEndpoint};
+use super::Condition;
 
 #[derive(CustomResource, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[kube(
-    group = "etl.router",
+    group = "conveyor.dev",
     version = "v1",
     kind = "Sink",
     plural = "sinks",
@@ -17,11 +19,16 @@ use super::{Condition, GrpcEndpoint};
     printcolumn = r#"{"name":"Ready", "type":"string", "jsonPath":".status.conditions[?(@.type=='Ready')].status"}"#,
     printcolumn = r#"{"name":"Age", "type":"date", "jsonPath":".metadata.creationTimestamp"}"#
 )]
-#[serde(rename_all = "camelCase")]
-pub struct SinkSpec {
-    pub grpc: GrpcEndpoint,
-    #[serde(default)]
-    pub config: serde_json::Value,
+pub struct SinkCrdSpec {
+    #[serde(flatten)]
+    pub inner: SinkSpec,
+}
+
+impl Deref for SinkCrdSpec {
+    type Target = SinkSpec;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]

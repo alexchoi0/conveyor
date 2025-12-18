@@ -8,7 +8,7 @@ pub use crd::{
     Transform, TransformSpec, TransformStatus,
     Sink, SinkSpec, SinkStatus,
     Pipeline, PipelineSpec, PipelineStatus,
-    EtlRouterCluster, EtlRouterClusterSpec, EtlRouterClusterStatus,
+    ConveyorCluster, ConveyorClusterSpec, ConveyorClusterStatus,
 };
 pub use error::{Error, Result};
 pub use grpc::RouterClient;

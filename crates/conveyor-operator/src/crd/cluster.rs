@@ -7,13 +7,13 @@ use super::Condition;
 
 #[derive(CustomResource, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[kube(
-    group = "etl.router",
+    group = "conveyor.dev",
     version = "v1",
-    kind = "EtlRouterCluster",
-    plural = "etlrouterclusters",
-    shortname = "erc",
+    kind = "ConveyorCluster",
+    plural = "conveyorclusters",
+    shortname = "cc",
     namespaced,
-    status = "EtlRouterClusterStatus",
+    status = "ConveyorClusterStatus",
     printcolumn = r#"{"name":"Replicas", "type":"integer", "jsonPath":".spec.replicas"}"#,
     printcolumn = r#"{"name":"Ready", "type":"integer", "jsonPath":".status.readyReplicas"}"#,
     printcolumn = r#"{"name":"Leader", "type":"integer", "jsonPath":".status.leaderId"}"#,
@@ -21,7 +21,7 @@ use super::Condition;
     printcolumn = r#"{"name":"Age", "type":"date", "jsonPath":".metadata.creationTimestamp"}"#
 )]
 #[serde(rename_all = "camelCase")]
-pub struct EtlRouterClusterSpec {
+pub struct ConveyorClusterSpec {
     #[schemars(range(min = 3))]
     #[serde(default = "default_replicas")]
     pub replicas: i32,
@@ -306,7 +306,7 @@ pub struct LabelSelectorRequirement {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct EtlRouterClusterStatus {
+pub struct ConveyorClusterStatus {
     #[serde(default)]
     pub observed_generation: Option<i64>,
     #[serde(default)]

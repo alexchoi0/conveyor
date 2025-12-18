@@ -31,14 +31,14 @@ use kube::{
 use tracing::{error, info, instrument, warn};
 
 use crate::crd::{
-    Condition, EtlRouterCluster, EtlRouterClusterStatus, NodeStatusInfo,
+    Condition, ConveyorCluster, ConveyorClusterStatus, NodeStatusInfo,
 };
 use crate::error::{Error, Result};
 use crate::grpc::RouterClient;
 use super::{Context, FINALIZER_NAME};
 
 pub async fn run(client: Client, router_client: Arc<RouterClient>) {
-    let clusters: Api<EtlRouterCluster> = Api::all(client.clone());
+    let clusters: Api<ConveyorCluster> = Api::all(client.clone());
     let statefulsets: Api<StatefulSet> = Api::all(client.clone());
     let services: Api<Service> = Api::all(client.clone());
     let configmaps: Api<ConfigMap> = Api::all(client.clone());
@@ -52,7 +52,7 @@ pub async fn run(client: Client, router_client: Arc<RouterClient>) {
         .run(reconcile, error_policy, ctx)
         .for_each(|res| async move {
             match res {
-                Ok(o) => info!("Reconciled EtlRouterCluster {:?}", o),
+                Ok(o) => info!("Reconciled ConveyorCluster {:?}", o),
                 Err(e) => error!("Reconcile failed: {:?}", e),
             }
         })
@@ -60,9 +60,9 @@ pub async fn run(client: Client, router_client: Arc<RouterClient>) {
 }
 
 #[instrument(skip(ctx, cluster), fields(name = %cluster.name_any(), namespace = ?cluster.namespace()))]
-async fn reconcile(cluster: Arc<EtlRouterCluster>, ctx: Arc<Context>) -> Result<Action> {
+async fn reconcile(cluster: Arc<ConveyorCluster>, ctx: Arc<Context>) -> Result<Action> {
     let ns = cluster.namespace().unwrap_or_else(|| "default".to_string());
-    let api: Api<EtlRouterCluster> = Api::namespaced(ctx.client.clone(), &ns);
+    let api: Api<ConveyorCluster> = Api::namespaced(ctx.client.clone(), &ns);
 
     finalizer(&api, FINALIZER_NAME, cluster, |event| async {
         match event {
@@ -74,11 +74,11 @@ async fn reconcile(cluster: Arc<EtlRouterCluster>, ctx: Arc<Context>) -> Result<
     .map_err(|e| Error::FinalizerError(e.to_string()))
 }
 
-async fn apply(cluster: Arc<EtlRouterCluster>, ctx: Arc<Context>) -> Result<Action> {
+async fn apply(cluster: Arc<ConveyorCluster>, ctx: Arc<Context>) -> Result<Action> {
     let ns = cluster.namespace().unwrap_or_else(|| "default".to_string());
     let name = cluster.name_any();
 
-    info!("Reconciling EtlRouterCluster {}/{}", ns, name);
+    info!("Reconciling ConveyorCluster {}/{}", ns, name);
 
     reconcile_configmap(&ctx.client, &ns, &name, &cluster.spec).await?;
     reconcile_headless_service(&ctx.client, &ns, &name, &cluster.spec).await?;
@@ -91,9 +91,9 @@ async fn apply(cluster: Arc<EtlRouterCluster>, ctx: Arc<Context>) -> Result<Acti
     Ok(Action::requeue(Duration::from_secs(30)))
 }
 
-async fn cleanup(cluster: Arc<EtlRouterCluster>, _ctx: Arc<Context>) -> Result<Action> {
+async fn cleanup(cluster: Arc<ConveyorCluster>, _ctx: Arc<Context>) -> Result<Action> {
     info!(
-        "Cleaning up EtlRouterCluster {}/{}",
+        "Cleaning up ConveyorCluster {}/{}",
         cluster.namespace().unwrap_or_default(),
         cluster.name_any()
     );
@@ -109,10 +109,10 @@ fn labels(name: &str) -> BTreeMap<String, String> {
 }
 
 #[allow(dead_code)]
-fn owner_reference(cluster: &EtlRouterCluster) -> k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
+fn owner_reference(cluster: &ConveyorCluster) -> k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
     k8s_openapi::apimachinery::pkg::apis::meta::v1::OwnerReference {
-        api_version: EtlRouterCluster::api_version(&()).to_string(),
-        kind: EtlRouterCluster::kind(&()).to_string(),
+        api_version: ConveyorCluster::api_version(&()).to_string(),
+        kind: ConveyorCluster::kind(&()).to_string(),
         name: cluster.metadata.name.clone().unwrap_or_default(),
         uid: cluster.metadata.uid.clone().unwrap_or_default(),
         controller: Some(true),
@@ -124,7 +124,7 @@ async fn reconcile_configmap(
     client: &Client,
     ns: &str,
     name: &str,
-    spec: &crate::crd::EtlRouterClusterSpec,
+    spec: &crate::crd::ConveyorClusterSpec,
 ) -> Result<()> {
     let api: Api<ConfigMap> = Api::namespaced(client.clone(), ns);
 
@@ -168,7 +168,7 @@ async fn reconcile_headless_service(
     client: &Client,
     ns: &str,
     name: &str,
-    spec: &crate::crd::EtlRouterClusterSpec,
+    spec: &crate::crd::ConveyorClusterSpec,
 ) -> Result<()> {
     let api: Api<Service> = Api::namespaced(client.clone(), ns);
 
@@ -213,7 +213,7 @@ async fn reconcile_client_service(
     client: &Client,
     ns: &str,
     name: &str,
-    spec: &crate::crd::EtlRouterClusterSpec,
+    spec: &crate::crd::ConveyorClusterSpec,
 ) -> Result<()> {
     let api: Api<Service> = Api::namespaced(client.clone(), ns);
 
@@ -266,7 +266,7 @@ async fn reconcile_statefulset(
     client: &Client,
     ns: &str,
     name: &str,
-    spec: &crate::crd::EtlRouterClusterSpec,
+    spec: &crate::crd::ConveyorClusterSpec,
 ) -> Result<()> {
     let api: Api<StatefulSet> = Api::namespaced(client.clone(), ns);
 
@@ -474,13 +474,13 @@ async fn poll_cluster_status(
     ctx: &Context,
     _ns: &str,
     name: &str,
-    spec: &crate::crd::EtlRouterClusterSpec,
-) -> EtlRouterClusterStatus {
+    spec: &crate::crd::ConveyorClusterSpec,
+) -> ConveyorClusterStatus {
     let endpoint = format!("{}:{}", name, spec.service.grpc_port);
 
     match ctx.router_client.connect(&endpoint).await {
         Ok(mut conn) => match conn.get_cluster_status().await {
-            Ok(status) => EtlRouterClusterStatus {
+            Ok(status) => ConveyorClusterStatus {
                 observed_generation: None,
                 conditions: vec![Condition::ready(true, "ClusterHealthy", "Cluster is healthy")],
                 replicas: spec.replicas,
@@ -501,7 +501,7 @@ async fn poll_cluster_status(
                     .collect(),
                 endpoint: Some(endpoint),
             },
-            Err(e) => EtlRouterClusterStatus {
+            Err(e) => ConveyorClusterStatus {
                 observed_generation: None,
                 conditions: vec![Condition::ready(false, "StatusFetchFailed", &e.to_string())],
                 replicas: spec.replicas,
@@ -513,7 +513,7 @@ async fn poll_cluster_status(
                 endpoint: Some(endpoint),
             },
         },
-        Err(e) => EtlRouterClusterStatus {
+        Err(e) => ConveyorClusterStatus {
             observed_generation: None,
             conditions: vec![Condition::ready(false, "ConnectionFailed", &e.to_string())],
             replicas: spec.replicas,
@@ -531,9 +531,9 @@ async fn update_cluster_status(
     client: &Client,
     ns: &str,
     name: &str,
-    status: EtlRouterClusterStatus,
+    status: ConveyorClusterStatus,
 ) -> Result<()> {
-    let api: Api<EtlRouterCluster> = Api::namespaced(client.clone(), ns);
+    let api: Api<ConveyorCluster> = Api::namespaced(client.clone(), ns);
 
     let patch = serde_json::json!({
         "status": status
@@ -545,9 +545,9 @@ async fn update_cluster_status(
     Ok(())
 }
 
-fn error_policy(cluster: Arc<EtlRouterCluster>, error: &Error, _ctx: Arc<Context>) -> Action {
+fn error_policy(cluster: Arc<ConveyorCluster>, error: &Error, _ctx: Arc<Context>) -> Action {
     warn!(
-        "EtlRouterCluster {} reconciliation error: {:?}",
+        "ConveyorCluster {} reconciliation error: {:?}",
         cluster.name_any(),
         error
     );

@@ -14,7 +14,7 @@ use kube::{
 use tracing::{error, info, instrument, warn};
 
 use crate::crd::{
-    Condition, Pipeline, PipelineStatus, Source, Transform, Sink, EtlRouterCluster,
+    Condition, Pipeline, PipelineStatus, Source, Transform, Sink, ConveyorCluster,
 };
 use crate::error::{Error, Result};
 use crate::grpc::RouterClient;
@@ -200,7 +200,7 @@ async fn validate_dependencies(
 }
 
 async fn find_router_endpoint(client: &Client, ns: &str) -> Result<String> {
-    let api: Api<EtlRouterCluster> = Api::namespaced(client.clone(), ns);
+    let api: Api<ConveyorCluster> = Api::namespaced(client.clone(), ns);
 
     let clusters = api.list(&Default::default()).await?;
 
@@ -218,7 +218,7 @@ async fn find_router_endpoint(client: &Client, ns: &str) -> Result<String> {
     }
 
     Err(Error::RouterNotFound(format!(
-        "No EtlRouterCluster found in namespace {}",
+        "No ConveyorCluster found in namespace {}",
         ns
     )))
 }

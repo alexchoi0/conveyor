@@ -4,7 +4,7 @@ use anyhow::{Context as _, Result};
 use clap::Args;
 use conveyor_dsl::{
     manifest::AnyManifest, optimizer::Optimizer, registry::Registry, ResourceKind,
-    LegacyPipelineManifest as PipelineManifest, SinkManifest, SourceManifest, TransformManifest,
+    PipelineManifest, SinkManifest, SourceManifest, TransformManifest,
 };
 
 use super::Context;
