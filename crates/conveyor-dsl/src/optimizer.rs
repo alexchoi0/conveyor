@@ -247,7 +247,7 @@ mod tests {
 
     fn make_source(name: &str) -> AnyManifest {
         AnyManifest::Source(Manifest {
-            api_version: "etl.router/v1".to_string(),
+            api_version: "conveyor.etl/v1".to_string(),
             kind: ResourceKind::Source,
             metadata: Metadata::new(name),
             spec: SourceSpec {
@@ -263,7 +263,7 @@ mod tests {
 
     fn make_transform(name: &str, transform_type: &str) -> AnyManifest {
         AnyManifest::Transform(Manifest {
-            api_version: "etl.router/v1".to_string(),
+            api_version: "conveyor.etl/v1".to_string(),
             kind: ResourceKind::Transform,
             metadata: Metadata::new(name),
             spec: TransformSpec {
@@ -279,7 +279,7 @@ mod tests {
 
     fn make_sink(name: &str) -> AnyManifest {
         AnyManifest::Sink(Manifest {
-            api_version: "etl.router/v1".to_string(),
+            api_version: "conveyor.etl/v1".to_string(),
             kind: ResourceKind::Sink,
             metadata: Metadata::new(name),
             spec: SinkSpec {
@@ -295,7 +295,7 @@ mod tests {
 
     fn make_pipeline(name: &str, source: &str, steps: &[&str], sink: &str) -> AnyManifest {
         AnyManifest::Pipeline(Manifest {
-            api_version: "etl.router/v1".to_string(),
+            api_version: "conveyor.etl/v1".to_string(),
             kind: ResourceKind::Pipeline,
             metadata: Metadata::new(name),
             spec: PipelineSpec {

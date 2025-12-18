@@ -184,7 +184,7 @@ mod tests {
     #[test]
     fn test_parse_source_manifest() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Source
 metadata:
   name: kafka-user-events
@@ -203,7 +203,7 @@ spec:
 "#;
 
         let manifest: SourceManifest = serde_yaml::from_str(yaml).unwrap();
-        assert_eq!(manifest.api_version, "etl.router/v1");
+        assert_eq!(manifest.api_version, "conveyor.etl/v1");
         assert_eq!(manifest.kind, ResourceKind::Source);
         assert_eq!(manifest.metadata.name, "kafka-user-events");
         assert_eq!(manifest.metadata.namespace, "default");
@@ -214,7 +214,7 @@ spec:
     #[test]
     fn test_parse_transform_manifest() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Transform
 metadata:
   name: filter-active-users
@@ -240,7 +240,7 @@ spec:
     #[test]
     fn test_parse_sink_manifest() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Sink
 metadata:
   name: s3-archive
@@ -264,7 +264,7 @@ spec:
     #[test]
     fn test_parse_pipeline_manifest() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: user-analytics
@@ -298,7 +298,7 @@ spec:
     #[test]
     fn test_parse_pipeline_without_steps() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: simple-passthrough
@@ -315,7 +315,7 @@ spec:
     #[test]
     fn test_parse_pipeline_dlq_defaults() {
         let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: with-dlq

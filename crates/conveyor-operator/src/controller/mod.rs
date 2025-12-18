@@ -22,4 +22,4 @@ impl Context {
     }
 }
 
-pub const FINALIZER_NAME: &str = "etl.router/finalizer";
+pub const FINALIZER_NAME: &str = "conveyor.etl/finalizer";

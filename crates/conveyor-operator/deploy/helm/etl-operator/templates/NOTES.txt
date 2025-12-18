@@ -4,11 +4,11 @@ ETL Operator has been installed!
    kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "etl-operator.name" . }}
 
 2. Check CRDs are installed:
-   kubectl get crd | grep etl.router
+   kubectl get crd | grep conveyor.etl
 
 3. Create an ETL Router cluster:
    cat <<EOF | kubectl apply -f -
-   apiVersion: etl.router/v1
+   apiVersion: conveyor.etl/v1
    kind: EtlRouterCluster
    metadata:
      name: my-cluster
@@ -27,7 +27,7 @@ ETL Operator has been installed!
 
 5. Create a pipeline:
    cat <<EOF | kubectl apply -f -
-   apiVersion: etl.router/v1
+   apiVersion: conveyor.etl/v1
    kind: Source
    metadata:
      name: my-source
@@ -35,7 +35,7 @@ ETL Operator has been installed!
      grpc:
        endpoint: source-svc:50051
    ---
-   apiVersion: etl.router/v1
+   apiVersion: conveyor.etl/v1
    kind: Sink
    metadata:
      name: my-sink
@@ -43,7 +43,7 @@ ETL Operator has been installed!
      grpc:
        endpoint: sink-svc:50051
    ---
-   apiVersion: etl.router/v1
+   apiVersion: conveyor.etl/v1
    kind: Pipeline
    metadata:
      name: my-pipeline

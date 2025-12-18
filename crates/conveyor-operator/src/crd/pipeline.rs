@@ -9,7 +9,7 @@ use super::Condition;
 
 #[derive(CustomResource, Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[kube(
-    group = "conveyor.dev",
+    group = "conveyor.etl",
     version = "v1",
     kind = "Pipeline",
     plural = "pipelines",

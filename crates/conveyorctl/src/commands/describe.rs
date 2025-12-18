@@ -12,7 +12,7 @@ pub struct DescribeArgs {
 
 pub async fn run(ctx: &Context, args: DescribeArgs) -> Result<()> {
     let endpoint = format!(
-        "{}/apis/etl.router/v1/namespaces/{}/{}/{}",
+        "{}/apis/conveyor.etl/v1/namespaces/{}/{}/{}",
         ctx.server,
         ctx.namespace,
         args.resource.api_path(),

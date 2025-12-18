@@ -52,7 +52,7 @@ Conveyor is a **control plane** for data pipelines. Instead of hardcoding connec
 | **Pipeline DSL** | Define pipelines in YAML with fan-in, fan-out, and shared stages |
 | **Backpressure** | Credit-based flow control prevents unbounded memory growth |
 | **Dead Letter Queue** | Failed records are captured with full error context for replay |
-| **Kubernetes Operator** | CRDs for `EtlPipeline`, `EtlSource`, `EtlTransform`, `EtlSink` |
+| **Kubernetes Operator** | CRDs for `Pipeline`, `Source`, `Transform`, `Sink` |
 | **Web Dashboard** | Real-time monitoring, pipeline visualization, error inspection |
 | **CLI Tool** | `conveyorctl` for pipeline management, backup/restore, debugging |
 
@@ -109,18 +109,19 @@ kubectl apply -k crates/conveyor-operator/deploy/operator/
 
 # Create a cluster
 kubectl apply -f - <<EOF
-apiVersion: etl.router/v1
-kind: EtlRouterCluster
+apiVersion: conveyor.etl/v1
+kind: ConveyorCluster
 metadata:
   name: my-cluster
 spec:
   replicas: 3
+  image: conveyor/router:latest
 EOF
 
 # Create a pipeline
 kubectl apply -f - <<EOF
-apiVersion: etl.router/v1
-kind: EtlPipeline
+apiVersion: conveyor.etl/v1
+kind: Pipeline
 metadata:
   name: user-analytics
 spec:
@@ -158,7 +159,7 @@ Define pipelines using simple YAML manifests:
 
 ```yaml
 # source.yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Source
 metadata:
   name: kafka-users
@@ -168,7 +169,7 @@ spec:
     endpoint: kafka-source-svc:50051
 
 # transform.yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Transform
 metadata:
   name: filter-active
@@ -177,7 +178,7 @@ spec:
     endpoint: filter-svc:50051
 
 # pipeline.yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: user-analytics
@@ -188,7 +189,7 @@ spec:
     - enrich-geo
   sink: clickhouse-analytics
   dlq:
-    enabled: true
+    sink: error-handler
     maxRetries: 3
 ```
 

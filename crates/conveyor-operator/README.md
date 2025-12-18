@@ -13,7 +13,7 @@ The operator watches Custom Resource Definitions (CRDs) and reconciles them with
 Deploys and manages a Raft cluster of router nodes.
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: EtlRouterCluster
 metadata:
   name: my-cluster
@@ -40,7 +40,7 @@ spec:
 Defines a data pipeline from source through transforms to sink.
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: EtlPipeline
 metadata:
   name: user-analytics
@@ -60,7 +60,7 @@ spec:
 Define individual data pipeline services.
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: EtlSource
 metadata:
   name: kafka-users

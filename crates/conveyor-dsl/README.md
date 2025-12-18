@@ -25,7 +25,7 @@ let pipeline = load_pipeline("pipeline.yaml")?;
 
 // From string
 let yaml = r#"
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: my-pipeline
@@ -83,7 +83,7 @@ let dag = optimizer.optimize()?;
 ### Source
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Source
 metadata:
   name: kafka-users
@@ -101,7 +101,7 @@ spec:
 ### Transform
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Transform
 metadata:
   name: filter-active
@@ -116,7 +116,7 @@ spec:
 ### Sink
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Sink
 metadata:
   name: s3-archive
@@ -131,7 +131,7 @@ spec:
 ### Pipeline
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: user-analytics

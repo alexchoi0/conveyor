@@ -65,14 +65,14 @@ async fn fetch_resources(
     let ns = namespace.unwrap_or("_all");
     let endpoint = match name {
         Some(n) => format!(
-            "{}/apis/etl.router/v1/namespaces/{}/{}/{}",
+            "{}/apis/conveyor.etl/v1/namespaces/{}/{}/{}",
             ctx.server,
             ns,
             resource_type.api_path(),
             n
         ),
         None => format!(
-            "{}/apis/etl.router/v1/namespaces/{}/{}",
+            "{}/apis/conveyor.etl/v1/namespaces/{}/{}",
             ctx.server,
             ns,
             resource_type.api_path()

@@ -135,7 +135,7 @@ conveyorctl backup cleanup --dest s3://bucket/backups/ --keep 10
 ## Manifest Format
 
 ```yaml
-apiVersion: etl.router/v1
+apiVersion: conveyor.etl/v1
 kind: Pipeline
 metadata:
   name: user-analytics

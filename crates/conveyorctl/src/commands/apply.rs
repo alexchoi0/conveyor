@@ -151,7 +151,7 @@ fn get_endpoint(ctx: &Context, kind: ResourceKind, namespace: &str) -> String {
     };
 
     format!(
-        "{}/apis/etl.router/v1/namespaces/{}/{}",
+        "{}/apis/conveyor.etl/v1/namespaces/{}/{}",
         ctx.server, namespace, resource_type
     )
 }

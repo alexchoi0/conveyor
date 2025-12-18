@@ -96,7 +96,7 @@ async fn delete_resource_impl(
     }
 
     let endpoint = format!(
-        "{}/apis/etl.router/v1/namespaces/{}/{}/{}",
+        "{}/apis/conveyor.etl/v1/namespaces/{}/{}/{}",
         ctx.server,
         namespace,
         resource.api_path(),
