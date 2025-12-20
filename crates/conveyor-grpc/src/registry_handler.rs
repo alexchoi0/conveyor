@@ -6,7 +6,7 @@ use tokio_stream::Stream;
 use tonic::{Request, Response, Status, Streaming};
 use tracing::info;
 
-use crate::error::{IntoStatus, ResultExt};
+use crate::error::{GrpcError, IntoStatus, ResultExt};
 
 use conveyor_proto::registry::{
     service_registry_server::ServiceRegistry as ServiceRegistryTrait,
@@ -53,8 +53,8 @@ impl ServiceRegistryTrait for ServiceRegistryImpl {
         request: Request<RegisterRequest>,
     ) -> Result<Response<RegisterResponse>, Status> {
         let req = request.into_inner();
-        let identity = req.identity.ok_or_else(|| Status::invalid_argument("identity required"))?;
-        let endpoint = req.endpoint.ok_or_else(|| Status::invalid_argument("endpoint required"))?;
+        let identity = req.identity.ok_or_else(|| GrpcError::missing_field("identity"))?;
+        let endpoint = req.endpoint.ok_or_else(|| GrpcError::missing_field("endpoint"))?;
 
         info!(
             service_id = %identity.service_id,
