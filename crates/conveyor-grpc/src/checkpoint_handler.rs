@@ -4,7 +4,7 @@ use tokio::sync::RwLock;
 use tonic::{Request, Response, Status};
 use tracing::{info, debug};
 
-use crate::error::ResultExt;
+use crate::error::{GrpcError, ResultExt};
 
 use conveyor_proto::checkpoint::{
     checkpoint_service_server::CheckpointService,
@@ -73,7 +73,7 @@ impl CheckpointService for CheckpointServiceImpl {
         request: Request<WatermarkRequest>,
     ) -> Result<Response<WatermarkResponse>, Status> {
         let req = request.into_inner();
-        let watermark = req.watermark.ok_or_else(|| Status::invalid_argument("watermark required"))?;
+        let watermark = req.watermark.ok_or_else(|| GrpcError::missing_field("watermark"))?;
 
         debug!(
             source_id = %watermark.source_id,
